@@ -49,7 +49,7 @@ module.exports = function (io, redis) {
             slack.webhook({
                 channel: '#lunch_time',
                 username: 'BLUNCH_BOT',
-                text: 'O ' + nome + ' confirmou que vem almoçar, ao restaurante ' + local + ' e vem ter ao local ' + encontro,
+                text: 'O ' + nome + ' confirmou que vem almoçar, ao restaurante ' + local + ' e vem ter ao local ' + encontro + ', pelas ' + hora,
                 icon_emoji: ':hamburger:'
             }, function (err, response) {});
 
