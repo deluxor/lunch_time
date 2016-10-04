@@ -3,6 +3,7 @@ const router = express.Router();
 const blinkstick = require('blinkstick');
 const led = blinkstick.findFirst();
 const moment = require('moment');
+const Slack = require('slack-node');
 moment.locale('pt');
 
 module.exports = function (io, redis) {
@@ -77,16 +78,27 @@ module.exports = function (io, redis) {
         });
     });
 
-    router.get('/tocar', function (req, res) {
+    router.post('/tocar', function (request, res) {
+        let nome = request.body.nome;
+
+        let webhookUri = 'https://hooks.slack.com/services/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';
+
+        let slack = new Slack();
+        slack.setWebhook(webhookUri);
+        slack.webhook({
+            channel: '#general',
+            username: 'CAMPAINHA LOQR',
+            text: 'O ' + nome + ' está á porta!',
+            icon_emoji: ':bell:'
+        }, function (err, response) {});
+
         led.blink('blue', {
-            repeats: 5,
-            steps: 300,
+            repeats: 15,
             index: 0,
             delay: 100
         }, function () {});
-        led.pulse('blue', {
-            repeats: 5,
-            steps: 300,
+        led.blink('blue', {
+            repeats: 15,
             index: 1,
             delay: 100
         }, function () {});
