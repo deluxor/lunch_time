@@ -77,6 +77,23 @@ module.exports = function (io, redis) {
         });
     });
 
+    router.get('/tocar', function (req, res) {
+        led.blink('blue', {
+            repeats: 5,
+            steps: 300,
+            index: 0,
+            delay: 100
+        }, function () {});
+        led.pulse('blue', {
+            repeats: 5,
+            steps: 300,
+            index: 1,
+            delay: 100
+        }, function () {});
+
+        res.send('OK');
+    });
+
     return router;
 
 };
