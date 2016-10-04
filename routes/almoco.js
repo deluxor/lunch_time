@@ -41,6 +41,19 @@ module.exports = function (io, redis) {
             redis.set(nome, JSON.stringify(userObj), function () {
                 redis.expire(nome, 43200);
             });
+
+            let webhookUri = 'https://hooks.slack.com/services/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';
+
+            let slack = new Slack();
+            slack.setWebhook(webhookUri);
+            slack.webhook({
+                channel: '#lunch_time',
+                username: 'BLUNCH_BOT',
+                text: 'O ' + nome + ' confirmou que vem almoçar, ao restaurante ' + local + ' e vem ter ao local ' + encontro,
+                icon_emoji: ':hamburger:'
+            }, function (err, response) {});
+
+
             io.to('geral').emit('confirmado');
             led.blink('green', {
                 repeats: 15,
@@ -62,6 +75,16 @@ module.exports = function (io, redis) {
     router.post('/remover', function (req, res) {
         let nome = req.body.nome;
         redis.del(nome, function () {
+            let webhookUri = 'https://hooks.slack.com/services/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';
+
+            let slack = new Slack();
+            slack.setWebhook(webhookUri);
+            slack.webhook({
+                channel: '#lunch_time',
+                username: 'BLUNCH_BOT',
+                text: 'O ' + nome + ' já não vem almoçar... Enfim, para a próxima vai a pé!',
+                icon_emoji: ':hamburger:'
+            }, function (err, response) {});
             res.send('OK');
         });
     });
