@@ -48,7 +48,7 @@ module.exports = function (io, redis) {
             slack.setWebhook(webhookUri);
             slack.webhook({
                 channel: '#lunch_time',
-                username: 'BLUNCH_BOT',
+                username: 'BLUNCH',
                 text: 'O ' + nome + ' confirmou que vem almoçar, ao restaurante ' + local + ' e vem ter ao local ' + encontro + ', pelas ' + hora,
                 icon_emoji: ':hamburger:'
             }, function (err, response) {});
@@ -81,7 +81,7 @@ module.exports = function (io, redis) {
             slack.setWebhook(webhookUri);
             slack.webhook({
                 channel: '#lunch_time',
-                username: 'BLUNCH_BOT',
+                username: 'BLUNCH',
                 text: 'O ' + nome + ' já não vem almoçar... Enfim, para a próxima vai a pé!',
                 icon_emoji: ':hamburger:'
             }, function (err, response) {});
@@ -110,7 +110,7 @@ module.exports = function (io, redis) {
         slack.setWebhook(webhookUri);
         slack.webhook({
             channel: '#general',
-            username: 'CAMPAINHA LOQR',
+            username: 'BBELLER',
             text: 'O ' + nome + ' está à porta!',
             icon_emoji: ':bell:'
         }, function (err, response) {});
