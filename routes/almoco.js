@@ -42,15 +42,15 @@ module.exports = function (io, redis) {
                 redis.expire(nome, 43200);
             });
             io.to('geral').emit('confirmado');
-            led.pulse('green', {
-                duration: 10000,
-                steps: 300,
-                index: 0
+            led.blink('green', {
+                repeats: 15,
+                index: 0,
+                delay: 100
             }, function () {});
-            led.pulse('green', {
-                duration: 10000,
-                steps: 300,
-                index: 1
+            led.blink('green', {
+                repeats: 15,
+                index: 1,
+                delay: 100
             }, function () {});
 
             res.send('OK');
@@ -88,7 +88,7 @@ module.exports = function (io, redis) {
         slack.webhook({
             channel: '#general',
             username: 'CAMPAINHA LOQR',
-            text: 'O ' + nome + ' está á porta!',
+            text: 'O ' + nome + ' está à porta!',
             icon_emoji: ':bell:'
         }, function (err, response) {});
 
