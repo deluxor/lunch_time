@@ -18,6 +18,27 @@ module.exports = function (io, redis) {
         });
     });
 
+    router.post('/registar', function (req, res) {
+        let nome = req.body.nome;
+        let nonce = req.body.nonce;
+
+        let userObj = {
+            nome: nome,
+            nonce: nonce
+        };
+        redis.select(1, function () {
+            redis.get(nome, function (err, result) {
+                if (!result) {
+                    redis.set(nome, JSON.stringify(userObj), function () {
+                        res.send('OK');
+                    });
+                } else {
+                    res.send('EXISTE');
+                }
+            });
+        });
+    });
+
     router.post('/confirmar', function (req, res) {
         let nome = req.body.nome;
         let local = req.body.local;
@@ -25,67 +46,109 @@ module.exports = function (io, redis) {
         let encontro = req.body.encontro;
         let boleia = req.body.boleia;
         let data = moment().format('DD/MMMM/YYYY, HH:mm');
+        let nonce = req.body.nonce;
+        redis.select(0, function () {
+            redis.get(nome, function (err, result) {
+                if (!result) {
+                    redis.select(1, function () {
+                        redis.get(nome, function (err, registo) {
+                            if (registo) {
+                                let registoObj = JSON.parse(registo);
+                                if (registoObj.nonce === nonce) {
+                                    if (hora >= 1200 && hora <= 1500) {
 
-        if (hora >= 1200 && hora <= 1500) {
+                                        let userObj = {
+                                            nome: nome,
+                                            local: local,
+                                            hora: hora,
+                                            data: data,
+                                            encontro: encontro,
+                                            boleia: boleia,
+                                            tipo: 'almoco',
+                                            nonce: nonce
+                                        };
+                                        redis.select(0, function () {
+                                            redis.set(nome, JSON.stringify(userObj), function () {
+                                                redis.expire(nome, 25200);
+                                            });
+                                        });
 
-            let userObj = {
-                nome: nome,
-                local: local,
-                hora: hora,
-                data: data,
-                encontro: encontro,
-                boleia: boleia,
-                tipo: 'almoco'
-            };
+                                        let webhookUri = 'https://hooks.slack.com/services/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';
 
-            redis.set(nome, JSON.stringify(userObj), function () {
-                redis.expire(nome, 43200);
+                                        let slack = new Slack();
+                                        slack.setWebhook(webhookUri);
+                                        slack.webhook({
+                                            channel: '#lunch_time',
+                                            username: 'BLUNCH',
+                                            text: 'O ' + nome + ' confirmou que vem almoçar, ao restaurante ' + local + ' e vem ter ao local ' + encontro + ', pelas ' + hora,
+                                            icon_emoji: ':hamburger:'
+                                        }, function (err, response) {});
+
+
+                                        io.to('geral').emit('confirmado');
+                                        led.blink('green', {
+                                            repeats: 15,
+                                            index: 0,
+                                            delay: 100
+                                        }, function () {});
+                                        led.blink('green', {
+                                            repeats: 15,
+                                            index: 1,
+                                            delay: 100
+                                        }, function () {});
+
+                                        res.send('OK');
+                                    } else {
+                                        res.send('HORA_INVALIDA');
+                                    }
+                                } else {
+                                    res.send('NONCE_INVALIDO');
+                                }
+                            } else {
+                                res.send('NAO_EXISTE_REGISTO');
+                            }
+                        });
+                    });
+
+
+                } else {
+                    res.send('EXISTE');
+                }
             });
-
-            let webhookUri = 'https://hooks.slack.com/services/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';
-
-            let slack = new Slack();
-            slack.setWebhook(webhookUri);
-            slack.webhook({
-                channel: '#lunch_time',
-                username: 'BLUNCH',
-                text: 'O ' + nome + ' confirmou que vem almoçar, ao restaurante ' + local + ' e vem ter ao local ' + encontro + ', pelas ' + hora,
-                icon_emoji: ':hamburger:'
-            }, function (err, response) {});
-
-
-            io.to('geral').emit('confirmado');
-            led.blink('green', {
-                repeats: 15,
-                index: 0,
-                delay: 100
-            }, function () {});
-            led.blink('green', {
-                repeats: 15,
-                index: 1,
-                delay: 100
-            }, function () {});
-
-            res.send('OK');
-        } else {
-            res.send('HORA_INVALIDA');
-        }
+        });
     });
 
     router.post('/remover', function (req, res) {
         let nome = req.body.nome;
-        redis.del(nome, function () {
-            let webhookUri = 'https://hooks.slack.com/services/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';
-
-            let slack = new Slack();
-            slack.setWebhook(webhookUri);
-            slack.webhook({
-                channel: '#lunch_time',
-                username: 'BLUNCH',
-                text: 'O ' + nome + ' já não vem almoçar... Enfim, para a próxima vai a pé!',
-                icon_emoji: ':hamburger:'
-            }, function (err, response) {});
-            res.send('OK');
+        redis.select(0, function () {
+            redis.get(nome, function (err, result) {
+                if (result) {
+                    redis.del(nome, function () {
+                        let webhookUri = 'https://hooks.slack.com/services/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';
+                        let slack = new Slack();
+                        slack.setWebhook(webhookUri);
+                        slack.webhook({
+                            channel: '#lunch_time',
+                            username: 'BLUNCH',
+                            text: 'O ' + nome + ' já não vem almoçar... Enfim, para a próxima vai a pé!',
+                            icon_emoji: ':hamburger:'
+                        }, function (err, response) {});
+                        led.blink('red', {
+                            repeats: 15,
+                            index: 0,
+                            delay: 100
+                        }, function () {});
+                        led.blink('red', {
+                            repeats: 15,
+                            index: 1,
+                            delay: 100
+                        }, function () {});
+                        res.send('OK');
+                    });
+                } else {
+                    res.send('NAO_EXISTE');
+                }
+            });
         });
     });
 
