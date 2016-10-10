@@ -153,14 +153,18 @@ module.exports = function (io, redis) {
     });
 
     router.get('/listar', function (req, res) {
-        redis.keys('*', function (err, keys) {
-            res.json(keys);
+        redis.select(0, function () {
+            redis.keys('*', function (err, keys) {
+                res.json(keys);
+            });
         });
     });
 
     router.get('/listar/:key', function (req, res) {
-        redis.get(req.params.key, function (err, result) {
-            res.json(result);
+        redis.select(0, function () {
+            redis.get(req.params.key, function (err, result) {
+                res.json(result);
+            });
         });
     });
 
