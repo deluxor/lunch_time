@@ -10,11 +10,8 @@ module.exports = function (io, redis) {
 
     io.on('connection', function (socket) {
         socket.join('geral');
-    });
-
-    io.on('teste', function (socket) {
         console.log(socket);
-    })
+    });
 
     router.get('/', function (req, res) {
         res.render('index', {
