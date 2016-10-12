@@ -12,6 +12,10 @@ module.exports = function (io, redis) {
         socket.join('geral');
     });
 
+    io.on('teste', function (socket) {
+        console.log(socket);
+    })
+
     router.get('/', function (req, res) {
         res.render('index', {
             data: moment().format('DD/MMMM/YYYY, HH:mm')
